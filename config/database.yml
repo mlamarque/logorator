@@ -1,0 +1,24 @@
+development:
+  adapter: mysql2
+  encoding: utf8
+  database: logorator_dev
+  username: root
+  password:
+  pool: 5
+  reconnect: false
+
+test:
+  adapter: mysql2
+  encoding: utf8
+  database: logorator_test
+  username: root
+  password:
+
+production:
+  adapter: mysql2
+  encoding: utf8
+  database: logorator_dev
+  username: root
+  password:
+  pool: 5
+  reconnect: false
