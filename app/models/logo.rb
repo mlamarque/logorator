@@ -1,13 +1,10 @@
-class Logo < ActiveRecord::Base
-  
+class Logo
+
   require 'RMagick'
   include Magick
-  def self.test
 
-     img = Image.new(40, 40) {
-      self.background_color = 'red'
-      }
-     
+  def self.test
+     img = Image.new(40, 40) { self.background_color = 'red' }
      text = Magick::Draw.new
      
      gc = Magick::Draw.new
@@ -16,65 +13,67 @@ class Logo < ActiveRecord::Base
      gc.stroke = 'none'
      gc.fill = '#ffffff'
      gc.annotate(img, 0, 0, 0, 4, "FB")
-     
      img.write('logo.jpg')
-    
   end
   
-  def self.test(word)
+  def self.logotify(company_name)
     points = []
-    
-    r = {}
-    ["yves", "delorme"].each_with_index do |word, index|
-      p word
-      i = 0
-      r["#{index}"] = []
-      word.each_char do |letter|
-        p letter
-        r["#{index}"] << {:indice => i, :letter => letter, :score => 0}
-        i += 1
+    score = [] 
+    company_name.split(//).each_with_index do |letter, index|
+      point = 0
+      point += 5 if index == 0
+      if Logo.con?(letter)
+        point += 1 
+        point += 2 if Logo.previous_letter_is_a_voy?(company_name, index-1)
+        point += 1 if Logo.previous_letter_is_a_voy?(company_name, index-1) && Logo.previous_letter_is_a_voy?(company_name, index-2)
       end
+      point += 2 if Logo.voy?(letter)
+      point += 3 if Logo.last_letter?(company_name, index)
+      score << {letter => point} 
     end
-    {"0"=>[{:indice=>0, :letter=>"y"}, {:indice=>1, :letter=>"v"}, {:indice=>2, :letter=>"e"}, {:indice=>3, :letter=>"s"}], "1"=>[{:indice=>0, :letter=>"d"}, {:indice=>1, :letter=>"e"}, {:indice=>2, :letter=>"l"}, {:indice=>3, :letter=>"o"}, {:indice=>4, :letter=>"r"}, {:indice=>5, :letter=>"m"}, {:indice=>6, :letter=>"e"}]}
-    
-    
-    
-    
-    word.split(" ").each_with_index do |word, index|
-      i = 0
-      word_points = []
-      word.each_char do |letter|
-        p "#{letter} => #{i}"
-        point = 0
-        point += 5 if i == 0
-        point += 2 if Logo.voy?(letter)
-        point += 1 if Logo.con?(letter)
-        word_points << point
-        i += 1
-      end
-      points << word_points
-    end
-    letters = ""
-    points.each do |point|
-      p point
-      letters += point.index(point.max).to_s
-    end
-    letters
+     Logo.scorify(score)
   end
   
-  def self.attributes_point
+  def self.scorify(scores)
+    company_scores = scores
+    scores = scores.map { |x| x.values[0].to_i; }
+    gap = 0
+    resultat = []
+    previous_index = 0
+    3.times do |i|
+      max_index = scores.index(scores.max) #0 #5 #3
+      gap += 1 if i == 1
+      resultat << max_index + gap
+      previous_index = max_index
+      scores.delete_at(max_index)
+    end
+    string = ""
+    resultat.sort.each do |i|
+      string += company_scores[i].keys[0]
+    end
+    string
+  end
+  
+  def self.last_letter?(company_name, index)
+    index == company_name.size - 1
   end
   
   def self.voy?(letter)
     ["a", "e", "i", "o", "u", "y"].include?(letter)
   end
+  
   def self.con?(letter)
     !["a", "e", "i", "o", "u", "y"].include?(letter)
   end
-  def self.first_letter?
+  
+  def self.voy?(letter)
+    ["a", "e", "i", "o", "u", "y"].include?(letter)
   end
-  def self.number_of_words?
+  
+  def self.previous_letter_is_a_voy?(name, index)
+    name[index] && Logo.voy?(name[index])
   end
+  
   
   
 end
